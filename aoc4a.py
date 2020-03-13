@@ -1,83 +1,54 @@
-fil = open('4a-input.txt', 'r')
-lista = list(fil)
+from collections import Counter
+from operator import itemgetter
 
-#lista=['[1518-11-01 00:00] Guard #10 begins shift\n',
-#'[1518-11-01 00:05] falls asleep\n',
-#'[1518-11-01 00:25] wakes up\n',
-#'[1518-11-01 00:30] falls asleep\n',
-#'[1518-11-01 00:55] wakes up\n',
-#'[1518-11-01 23:58] Guard #99 begins shift\n',
-#'[1518-11-02 00:40] falls asleep\n',
-#'[1518-11-02 00:50] wakes up\n',
-#'[1518-11-03 00:05] Guard #10 begins shift\n',
-#'[1518-11-03 00:24] falls asleep\n',
-#'[1518-11-03 00:29] wakes up\n',
-#'[1518-11-04 00:02] Guard #99 begins shift\n',
-#'[1518-11-04 00:36] falls asleep\n',
-#'[1518-11-04 00:46] wakes up\n',
-#'[1518-11-05 00:03] Guard #99 begins shift\n',
-#'[1518-11-05 00:45] falls asleep\n',
-#'[1518-11-05 00:55] wakes up\n']
+with open('4a-input.txt') as file:
+    text = file.readlines()
+
+#test=['[1518-11-01 00:00] Guard #10 begins shift\n','[1518-11-01 00:05] falls asleep\n','[1518-11-01 00:25] wakes up\n','[1518-11-01 00:30] falls asleep\n','[1518-11-01 00:55] wakes up\n','[1518-11-01 23:58] Guard #99 begins shift\n','[1518-11-02 00:40] falls asleep\n','[1518-11-02 00:50] wakes up\n','[1518-11-03 00:05] Guard #10 begins shift\n','[1518-11-03 00:24] falls asleep\n','[1518-11-03 00:29] wakes up\n','[1518-11-04 00:02] Guard #99 begins shift\n','[1518-11-04 00:36] falls asleep\n','[1518-11-04 00:46] wakes up\n''[1518-11-05 00:03] Guard #99 begins shift\n','[1518-11-05 00:45] falls asleep\n','[1518-11-05 00:55] wakes up\n']
+#text = test
+
+lista = [line.strip() for line in text]
 
 lista.sort()
-
 #print(lista)
+#exit()
 
-sovlist = []
+guards = {}
+
+#Strategy 1: Find the guard that has the most minutes asleep.
+#What minute does that guard spend asleep the most?
+
+#What is the ID of the guard you chose multiplied by the minute you chose?
 
 for x in lista:
-    date = x.split()[0][1:]
-    time = x.split()[1][:-1]
-    text = x.split("]")[1][1:]
-#    print("datum:", date)
-#    print("tid:", time)
-#    print("text:", text)
+    [date, time] = x.split(']',1)[0].strip('[').split(' ')
+    sleeptime = 0
+    if x.split(' ')[2] == 'Guard':
+        guardno = x.split(' ')[3][1:]
+        if int(time.split(':')[0]) != 0:
+            wake = 0
+        else:
+            wake = int(time.split(':')[1])
+        if (guardno not in guards):
+            guards.update({guardno : []})
+    else:
+        text = ' '.join(x.split(' ',4)[-2:])
+        if text == 'falls asleep':
+            sleep = int(time.split(':')[1])
+        elif text == 'wakes up':
+            wake = int(time.split(':')[1])
+            for t in range(sleep, wake):
+                guards.update({guardno : guards[guardno] + [t]})
 
-#    print(text)
-    if text[:5] == 'Guard':
-        guardno = text.split()[1][1:]
-    if text.split()[0] == 'falls':
-        somna = time
-        print(somna)
-    if text.split()[0] == 'wakes':
-        vakna = time
-        tid = 60*(int(vakna.split(":")[0])-int(somna.split(":")[0])) + int(vakna.split(":")[1])-int(somna.split(":")[1])
-#        print("sovtid:", tid)
-        sovlist = sovlist + [(guardno, somna, vakna, tid)] 
-#        print(guardno, somna, vakna, tid)    
+results = []
+for g in guards:
+    occurence_count = Counter(guards[g]) 
+    num_minutes = len(guards[g])
+    if len(guards[g]) > 0: [(minute, times)] = occurence_count.most_common(1)
+    results = results + [(g, num_minutes, minute, times)]
 
-#Make to time stamps ...
+(guard, numbers, minute, times) = max(results,key=itemgetter(1))
+print('Part one:', minute*int(guard))
 
-sumlist = []
-
-for i in range(len(sovlist)):
-    g = sovlist[i][0]
-    sov = sovlist[i][3]
-#    print(g, sov)
-    found = False
-    for j in range(len(sumlist)):
-        if sumlist[j][0] == g:
-            found = True
-            sumlist[j][1] = sumlist[j][1] + sov
-    if not(found):
-        sumlist.append([g, sov])
-
-#print(sumlist)        
-
-def sortSecond(val): 
-    return val[1]
-
-sumlist.sort(key = sortSecond, reverse=True)
-print(sumlist[0])
-guy = sumlist[0][0]
-
-def findminute(a):
-    
-    return 3
-
-
-common_minute = findminute(guy)
-print(common_minute)
-
-#print(lista)
-
+(guard, numbers, minute, times) = max(results,key=itemgetter(3))
+print('Part two:', minute*int(guard))
