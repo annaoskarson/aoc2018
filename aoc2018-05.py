@@ -1,4 +1,4 @@
-fil = open('5-input.txt', 'r')
+fil = open('aoc2018-05-input.txt', 'r')
 indata = fil.read()
 indata = indata.replace('\n', '')
 fil.close()
